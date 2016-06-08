@@ -8,16 +8,19 @@ import java.util.LinkedList;
 import javax.swing.*;
 
 public class Bombafield extends JPanel implements MouseListener {
-	private int fieldSize = 20;
-	private int rows = 10;
-	private int columns = 10;
-	private boolean[][] pressed;
+	private int tileSize;
+	private int rows;
+	private int columns;
+
 	private Bombawoman woman;
 	private LinkedList<Bombabomb> bombs;
 
 	public Bombafield(int width, int height, int tileSize) {
-		pressed = new boolean[columns][rows];
-		woman = new Bombawoman((int)(columns/2) * fieldSize, (int)(rows/2) * fieldSize);
+		columns = width;
+		rows = height;
+		this.tileSize = tileSize;
+
+		woman = new Bombawoman((columns / 2) * tileSize, (rows / 2) * tileSize);
 		bombs = new LinkedList<Bombabomb>();
 
 		addMouseListener(this);
@@ -26,76 +29,102 @@ public class Bombafield extends JPanel implements MouseListener {
 	}
 
 	/**
-	 * @TODO: this method should init the game (so it can be played multiple times)
+	 * Removes bombs and resets the position of the character, then repaints
 	 */
 	public void newGame() {
-		System.out.println("INIT");
+		bombs.empty();
+
+		woman.setPosition((columns / 2) * tileSize, (rows / 2) * tileSize);
+
+		repaint();
 	}
 
 	/**
-	 * @TODO: rewrite this method
+	 * Creates a new bomb and adds it to the bomb-list
 	 **/
 	public void makeBomb() {
-		int woX = woman.getX();
-		int woY = woman.getY();
-		boolean bool = true;
+		int posX = woman.getX();
+		int posY = woman.getY();
 
-		while(bool) {
-			int x = woX;
-			int y = woY;
+		while(true) {
+			int x = (int)(Math.random() * 100) % columns;
+			int y = (int)(Math.random() * 100) % rows;
+			boolean placeTaken = false;
 
-			while(x == woX && y == woY) {
-				x = (int)(Math.random() * 100) % columns;
-				y = (int)(Math.random() * 100) % rows;
+			// if it's the characters position
+			if (x == posX && y == posY) {
+				continue;
 			}
 
-			bool = false;
-			for (Bombabomb bomb : bombs)
-				if (bomb.isPosition(x, y))
-					bool = true;
+			// if the position is already taken by another bomb
+			for (Bombabomb bomb : bombs) {
+				if (bomb.isPosition(x, y)) {
+					placeTaken = true;
+					break
+				}
+			}
 
-			if (!bool) {
+			if (!placeTaken) {
 				bombs.add(new Bombabomb(x * fieldSize, y * fieldSize, 1));
+				break;
 			}
 		}
 	}
 
 	/**
-	 * @TODO: rewrite this method
+	 * Check if the given coordinate (x,y) is in a tile that the character 
+	 *  may move to (adjacent and not occupied)
 	 */
-	public boolean checkMovable(int x, int y) {
-		// to check their "left-upper"-value
-		x = x - x % fieldSize;
-		y = y - y % fieldSize;
+	public boolean checkMovable(int mouseX, int mouseY) {
+		// adjusts the mouse-position to the tile-positions
+		int x = mouseX - mouseX % tileSize;
+		int y = mouseY - mouseY % tileSize;
 
-		int woX = woman.getX();
-		int woY = woman.getY();
+		int posX = woman.getX();
+		int posY = woman.getY();
 
-		return notInBetween(woX, x - fieldSize, x + fieldSize) &&
-				notInBetween(woY, y - fieldSize, y + fieldSize) &&
-				notOccupiedByBomb(x, y) &&
-				(woX != x || woY != y);
+		// the coordinates for adjacent tiles to the clicked tile
+		int leftX = x - tileSize;
+		int rightX = x + tileSize;
+		int upY = y - tileSize;
+		int downY = y + tileSize;
+
+		// if the character is not in the bound created by the 
+		//  tile clicked by the mouse
+		if (!inBetween(posX, leftX, rightX) ||
+			!inBetween(posY, upY, downY)) {
+			return false;
+		}
+
+		if (occupiedByBomb(x, y)) {
+			return false;
+		}
+
+		// if the new position is the same as the current position
+		if (posX == x && posY == y) {
+			return false;
+		}
+
+		return true;
 	}
 
-	public boolean notInBetween(int value, int min, int max) {
+	public boolean inBetween(int value, int min, int max) {
 		return value >= min && value <= max;
 	}
 
-	public boolean notOccupiedByBomb(int x, int y) {
+	public boolean occupiedByBomb(int x, int y) {
 		for (Bombabomb bomb : bombs)
 			if (bomb.isPosition(x, y))
-				return false;
-		return true;
+				return true;
+		return false;
 	}
 
 	public void mouseReleased(MouseEvent e) {
 		int mouseX = e.getX();
 		int mouseY = e.getY();
 
-		System.out.println(mouseX + "," + mouseY);
-
 		if (checkMovable(mouseX, mouseY)) {
-			woman.move(mouseX - mouseX%fieldSize, mouseY - mouseY%fieldSize);
+			woman.move(mouseX - mouseX % fieldSize, mouseY - mouseY % fieldSize);
 
 			for (int i = 0 ; i < bombs.size() ; i++)
 				if (bombs.get(i).tick()) {
