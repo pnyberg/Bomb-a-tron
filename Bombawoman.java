@@ -15,9 +15,14 @@ public class Bombawoman {
 	private Color color;
 
 	public Bombawoman(int x, int y) {
+		color = Color.black;
+
+		setPosition(x, y);
+	}
+
+	public void setPosition(int x, int y) {
 		this.x = x;
 		this.y = y;
-		color = Color.black;
 	}
 
 	public void move(int x, int y) {

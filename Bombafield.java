@@ -32,7 +32,7 @@ public class Bombafield extends JPanel implements MouseListener {
 	 * Removes bombs and resets the position of the character, then repaints
 	 */
 	public void newGame() {
-		bombs.empty();
+		bombs.clear();
 
 		woman.setPosition((columns / 2) * tileSize, (rows / 2) * tileSize);
 
@@ -49,6 +49,7 @@ public class Bombafield extends JPanel implements MouseListener {
 		while(true) {
 			int x = (int)(Math.random() * 100) % columns;
 			int y = (int)(Math.random() * 100) % rows;
+
 			boolean placeTaken = false;
 
 			// if it's the characters position
@@ -60,12 +61,12 @@ public class Bombafield extends JPanel implements MouseListener {
 			for (Bombabomb bomb : bombs) {
 				if (bomb.isPosition(x, y)) {
 					placeTaken = true;
-					break
+					break;
 				}
 			}
 
 			if (!placeTaken) {
-				bombs.add(new Bombabomb(x * fieldSize, y * fieldSize, 1));
+				bombs.add(new Bombabomb(x * tileSize, y * tileSize, 1));
 				break;
 			}
 		}
@@ -124,7 +125,7 @@ public class Bombafield extends JPanel implements MouseListener {
 		int mouseY = e.getY();
 
 		if (checkMovable(mouseX, mouseY)) {
-			woman.move(mouseX - mouseX % fieldSize, mouseY - mouseY % fieldSize);
+			woman.move(mouseX - mouseX % tileSize, mouseY - mouseY % tileSize);
 
 			for (int i = 0 ; i < bombs.size() ; i++)
 				if (bombs.get(i).tick()) {
@@ -162,21 +163,21 @@ public class Bombafield extends JPanel implements MouseListener {
 	 */
 	private void paintField(Graphics g) {
 		g.setColor(Color.white);
-		g.fillRect(0, 0, rows * fieldSize, columns * fieldSize);
+		g.fillRect(0, 0, rows * tileSize, columns * tileSize);
 		for (int n = 0 ; n < rows ; n++) {
 			for (int i = 0 ; i < columns ; i++) {
-				if (checkMovable(i * fieldSize, n * fieldSize))
+				if (checkMovable(i * tileSize, n * tileSize))
 					g.setColor(Color.green);
 				else
 					g.setColor(Color.white);
-				g.fillRect(i * fieldSize, n * fieldSize, fieldSize, fieldSize);
+				g.fillRect(i * tileSize, n * tileSize, tileSize, tileSize);
 			}
 		}
 
 		g.setColor(Color.black);
 		for (int i = 0 ; i <= columns ; i++)
-			g.drawLine(0, i * fieldSize, columns * fieldSize, i * fieldSize);
+			g.drawLine(0, i * tileSize, columns * tileSize, i * tileSize);
 		for (int i = 0 ; i <= rows ; i++)
-			g.drawLine(i * fieldSize, 0, i * fieldSize, rows * fieldSize);
+			g.drawLine(i * tileSize, 0, i * tileSize, rows * tileSize);
 	}
 }
